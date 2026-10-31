@@ -1,0 +1,66 @@
+{
+  "machine": "Example MacBook Air",
+  "disk": { "total_gb": 228, "free_gb": 119 },
+  "groups": [
+    {
+      "id": "A",
+      "title": "Caches",
+      "summary": "Temporary downloads that apps rebuild automatically.",
+      "items": [
+        { "name": "npm download cache", "path": "~/.npm/_cacache", "size_mb": 2450, "risk": "safe",
+          "why": "Copies of packages npm has already downloaded.",
+          "effect": "The next npm install re-downloads only what it needs.",
+          "undo": "Restore from Trash, or simply run npm install." },
+        { "name": "VS Code extension installers", "path": "~/Library/Application Support/Code/CachedExtensionVSIXs", "size_mb": 1740, "risk": "safe",
+          "why": "Installer files for extensions that are already installed.",
+          "effect": "None — VS Code downloads installers again only when it needs them." },
+        { "name": "Homebrew downloads", "path": "~/Library/Caches/Homebrew", "size_mb": 212, "risk": "safe",
+          "why": "Old package downloads kept after installing." }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Leftovers from removed apps",
+      "summary": "Updaters and settings for apps that are no longer installed.",
+      "items": [
+        { "name": "Microsoft Edge updater", "path": "~/Library/Application Support/Microsoft/EdgeUpdater", "size_mb": 1400, "risk": "safe",
+          "why": "Edge isn't installed, but its updater and downloaded updates were left behind." },
+        { "name": "Office shared data", "path": "~/Library/Group Containers/UBF8T346G9.Office", "size_mb": 85, "risk": "risky",
+          "why": "Office isn't installed any more.",
+          "warning": "Office sometimes keeps autosaved documents here. Open the folder and rescue any .docx/.xlsx files first." }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Idle projects",
+      "summary": "Rebuildable folders in projects you haven't touched for months.",
+      "items": [
+        { "name": "nexus · Python environment", "path": "~/Development/nexus/.venv", "size_mb": 628, "risk": "caution",
+          "why": "Project unchanged since June.",
+          "effect": "You'll need to recreate it before running the project again.",
+          "undo": "python3 -m venv .venv && pip install -r requirements.txt" },
+        { "name": "Junior_DE · Next.js build", "path": "~/Development/Junior_DE/.next", "size_mb": 952, "risk": "safe",
+          "why": "Build output, recreated by npm run dev or npm run build." }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Apps you don't use",
+      "summary": "Not opened in over 60 days.",
+      "items": [
+        { "name": "Keynote", "path": "/Applications/Keynote.app", "size_mb": 646, "risk": "caution",
+          "why": "Last opened 12 August.",
+          "undo": "Re-download free from the App Store." }
+      ]
+    }
+  ],
+  "keep": [
+    { "name": "Python 3.12", "why": "Your default python3; one project depends on it." },
+    { "name": "Visual Studio Code", "why": "Used today." },
+    { "name": "Power User for dbt", "why": "You have dbt projects." }
+  ],
+  "manual": [
+    "Run the sudo command Claude gives you to remove Microsoft's system-wide background helpers.",
+    "Quit VS Code (Cmd+Q) and reopen it so removed extensions are deleted from disk."
+  ]
+}

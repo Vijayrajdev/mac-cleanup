@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mac Cleanup Report</title>
+<style>
+  :root {
+    --bg: #070b16;
+    --bg-2: #0d1426;
+    --card: rgba(255, 255, 255, 0.045);
+    --card-hover: rgba(255, 255, 255, 0.075);
+    --border: rgba(255, 255, 255, 0.09);
+    --text: #e8ecf8;
+    --muted: #8d97b3;
+    --faint: #5b6585;
+    --accent: #7c8cff;
+    --accent-2: #36d6e7;
+    --safe: #34d399;
+    --safe-bg: rgba(52, 211, 153, 0.12);
+    --caution: #fbbf24;
+    --caution-bg: rgba(251, 191, 36, 0.12);
+    --risky: #fb7185;
+    --risky-bg: rgba(251, 113, 133, 0.13);
+    --glow-1: rgba(124, 140, 255, 0.28);
+    --glow-2: rgba(54, 214, 231, 0.18);
+    --shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f6fc;
+    --bg-2: #ffffff;
+    --card: rgba(255, 255, 255, 0.8);
+    --card-hover: #ffffff;
+    --border: rgba(20, 30, 70, 0.1);
+    --text: #121a33;
+    --muted: #55607e;
+    --faint: #8a93ad;
+    --accent: #4f5ff0;
+    --accent-2: #0aa5b8;
+    --safe: #059669;
+    --safe-bg: rgba(5, 150, 105, 0.1);
+    --caution: #b45309;
+    --caution-bg: rgba(217, 119, 6, 0.12);
+    --risky: #e11d48;
+    --risky-bg: rgba(225, 29, 72, 0.09);
+    --glow-1: rgba(79, 95, 240, 0.16);
+    --glow-2: rgba(10, 165, 184, 0.12);
+    --shadow: 0 16px 40px -20px rgba(20, 30, 70, 0.25);
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: -20vh -20vw auto auto;
+    width: 70vw; height: 70vh;
+    background: radial-gradient(closest-side, var(--glow-1), transparent);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: "";
+    position: fixed; inset: auto auto -25vh -20vw;
+    width: 70vw; height: 70vh;
+    background: radial-gradient(closest-side, var(--glow-2), transparent);
+    pointer-events: none; z-index: 0;
+  }
+  .wrap { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 40px 16px 80px; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 12px var(--safe); }
+  h1 {
+    margin: 8px 0 4px; font-size: clamp(28px, 5vw, 42px); line-height: 1.1; letter-spacing: -0.02em;
+    background: linear-gradient(100deg, var(--text) 20%, var(--accent) 60%, var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { color: var(--muted); margin: 0; }
+  .theme-btn {
+    flex: none; border: 1px solid var(--border); background: var(--card); color: var(--text);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 13px; cursor: pointer;
+    backdrop-filter: blur(12px);
+  }
+  .theme-btn:hover { background: var(--card-hover); }
+
+  .notice {
+    display: flex; gap: 12px; align-items: center;
+    padding: 14px 18px; border-radius: 14px; margin-bottom: 24px;
+    background: linear-gradient(90deg, rgba(124,140,255,.14), rgba(54,214,231,.08));
+    border: 1px solid var(--border); font-size: 14px;
+  }
+  .notice b { color: var(--text); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .stat, .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    backdrop-filter: blur(14px); box-shadow: var(--shadow);
+  }
+  .stat { padding: 16px 18px; }
+  .stat .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .stat .value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat .value small { font-size: 14px; font-weight: 500; color: var(--muted); margin-left: 2px; }
+  .stat.safe .value { color: var(--safe); }
+  .stat.caution .value { color: var(--caution); }
+  .stat.risky .value { color: var(--risky); }
+
+  .disk { padding: 18px; margin-bottom: 28px; }
+  .disk-top { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 10px; gap: 12px; flex-wrap: wrap; }
+  .bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(127,127,127,.15); }
+  .bar span { display: block; height: 100%; }
+  .bar .used { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .bar .r-safe { background: var(--safe); }
+  .bar .r-caution { background: var(--caution); }
+  .bar .r-risky { background: var(--risky); }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--card); color: var(--muted);
+    border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { color: var(--text); border-color: var(--accent); background: rgba(124,140,255,.16); }
+
+  .group { margin-bottom: 18px; overflow: hidden; }
+  .group-head { display: flex; align-items: center; gap: 14px; padding: 18px 20px; cursor: pointer; user-select: none; }
+  .group-id {
+    flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+    font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+  .group-title { font-weight: 620; font-size: 17px; }
+  .group-sum { color: var(--muted); font-size: 13.5px; }
+  .group-size { margin-left: auto; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .group-size small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+  .chev { color: var(--faint); transition: transform .2s; flex: none; }
+  .group.collapsed .chev { transform: rotate(-90deg); }
+  .group.collapsed .items { display: none; }
+
+  .items { border-top: 1px solid var(--border); }
+  .item { padding: 14px 20px; border-top: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: start; }
+  .item:first-child { border-top: 0; }
+  .item:hover { background: var(--card-hover); }
+  .item.risky { background: linear-gradient(90deg, var(--risky-bg), transparent 60%); }
+  .badge {
+    font-size: 11.5px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap; margin-top: 2px;
+  }
+  .badge.safe { color: var(--safe); background: var(--safe-bg); }
+  .badge.caution { color: var(--caution); background: var(--caution-bg); }
+  .badge.risky { color: var(--risky); background: var(--risky-bg); }
+  .item-name { font-weight: 560; }
+  .item-path { font-family: var(--mono); font-size: 12px; color: var(--faint); word-break: break-all; }
+  .item-size { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .item-why { grid-column: 2 / 4; color: var(--muted); font-size: 14px; }
+  .item-meta { grid-column: 2 / 4; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  .item-meta b { color: var(--text); font-weight: 560; }
+  .warn {
+    grid-column: 2 / 4; margin-top: 6px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--risky) 40%, transparent);
+    background: var(--risky-bg); color: var(--text); font-size: 13px;
+  }
+  .warn.caution { border-color: color-mix(in srgb, var(--caution) 40%, transparent); background: var(--caution-bg); }
+
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 36px 0 12px; }
+  .keep { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .keep div { padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); }
+  .keep b { display: block; font-weight: 560; }
+  .keep span { font-size: 13px; color: var(--muted); }
+  .manual { padding: 6px 20px; }
+  .manual li { padding: 8px 0; color: var(--text); }
+  .manual li::marker { color: var(--accent); }
+  code { font-family: var(--mono); font-size: 12.5px; background: rgba(127,127,127,.15); padding: 1px 6px; border-radius: 6px; }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  footer { margin-top: 40px; text-align: center; color: var(--faint); font-size: 13px; }
+  .empty { padding: 24px; text-align: center; color: var(--muted); }
+
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    header { flex-direction: column; }
+    .item { grid-template-columns: 1fr auto; }
+    .item .badge { grid-column: 1 / 3; justify-self: start; }
+    .item-why, .item-meta, .warn { grid-column: 1 / 3; }
+    .group-head { flex-wrap: wrap; }
+    .group-size { margin-left: 52px; text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><span class="dot"></span>Scan complete · nothing removed yet</div>
+      <h1>Mac Cleanup Report</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">◐ Theme</button>
+  </header>
+
+  <div class="notice">🛡️ <span>This page only <b>shows</b> what could go. Nothing is deleted from here — reply to Claude with the groups you approve, and they'll be moved to the <b>Trash</b>, where you can restore them.</span></div>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="card disk">
+    <div class="disk-top"><span id="diskLabel"></span><span id="diskAfter"></span></div>
+    <div class="bar" id="bar"></div>
+    <div class="legend">
+      <span><i style="background:linear-gradient(90deg,var(--accent),var(--accent-2))"></i>Used</span>
+      <span><i style="background:var(--safe)"></i>Safe to remove</span>
+      <span><i style="background:var(--caution)"></i>Caution</span>
+      <span><i style="background:var(--risky)"></i>Risky</span>
+    </div>
+  </section>
+
+  <div class="filters" id="filters">
+    <button class="chip" data-f="all" aria-pressed="true" type="button">All</button>
+    <button class="chip" data-f="safe" aria-pressed="false" type="button">🟢 Safe</button>
+    <button class="chip" data-f="caution" aria-pressed="false" type="button">🟡 Caution</button>
+    <button class="chip" data-f="risky" aria-pressed="false" type="button">🔴 Risky</button>
+  </div>
+
+  <main id="groups"></main>
+
+  <section id="manualSec" hidden>
+    <h2>You'll need to do these by hand</h2>
+    <ol class="card manual" id="manual"></ol>
+  </section>
+
+  <section id="keepSec" hidden>
+    <h2>Checked and kept</h2>
+    <div class="keep" id="keep"></div>
+  </section>
+
+  <footer>Generated by the <b>mac-cleanup</b> skill for Claude · Made by <a href="https://vijayraj.vercel.app/" target="_blank" rel="noopener">Vijay Raj C K</a><br>Everything goes to the Trash, never deleted outright</footer>
+</div>
+
+<script id="findings" type="application/json">{"machine": "Example MacBook Air", "disk": {"total_gb": 228, "free_gb": 119}, "groups": [{"id": "A", "title": "Caches", "summary": "Temporary downloads that apps rebuild automatically.", "items": [{"name": "npm download cache", "path": "~/.npm/_cacache", "size_mb": 2450, "risk": "safe", "why": "Copies of packages npm has already downloaded.", "effect": "The next npm install re-downloads only what it needs.", "undo": "Restore from Trash, or simply run npm install."}, {"name": "VS Code extension installers", "path": "~/Library/Application Support/Code/CachedExtensionVSIXs", "size_mb": 1740, "risk": "safe", "why": "Installer files for extensions that are already installed.", "effect": "None — VS Code downloads installers again only when it needs them."}, {"name": "Homebrew downloads", "path": "~/Library/Caches/Homebrew", "size_mb": 212, "risk": "safe", "why": "Old package downloads kept after installing."}]}, {"id": "B", "title": "Leftovers from removed apps", "summary": "Updaters and settings for apps that are no longer installed.", "items": [{"name": "Microsoft Edge updater", "path": "~/Library/Application Support/Microsoft/EdgeUpdater", "size_mb": 1400, "risk": "safe", "why": "Edge isn't installed, but its updater and downloaded updates were left behind."}, {"name": "Office shared data", "path": "~/Library/Group Containers/UBF8T346G9.Office", "size_mb": 85, "risk": "risky", "why": "Office isn't installed any more.", "warning": "Office sometimes keeps autosaved documents here. Open the folder and rescue any .docx/.xlsx files first."}]}, {"id": "C", "title": "Idle projects", "summary": "Rebuildable folders in projects you haven't touched for months.", "items": [{"name": "nexus · Python environment", "path": "~/Development/nexus/.venv", "size_mb": 628, "risk": "caution", "why": "Project unchanged since June.", "effect": "You'll need to recreate it before running the project again.", "undo": "python3 -m venv .venv && pip install -r requirements.txt"}, {"name": "Junior_DE · Next.js build", "path": "~/Development/Junior_DE/.next", "size_mb": 952, "risk": "safe", "why": "Build output, recreated by npm run dev or npm run build."}]}, {"id": "D", "title": "Apps you don't use", "summary": "Not opened in over 60 days.", "items": [{"name": "Keynote", "path": "/Applications/Keynote.app", "size_mb": 646, "risk": "caution", "why": "Last opened 12 August.", "undo": "Re-download free from the App Store."}]}], "keep": [{"name": "Python 3.12", "why": "Your default python3; one project depends on it."}, {"name": "Visual Studio Code", "why": "Used today."}, {"name": "Power User for dbt", "why": "You have dbt projects."}], "manual": ["Run the sudo command Claude gives you to remove Microsoft's system-wide background helpers.", "Quit VS Code (Cmd+Q) and reopen it so removed extensions are deleted from disk."], "generated": "2026-10-31T14:29:46"}</script>
+<script>
+(function () {
+  "use strict";
+  var data = JSON.parse(document.getElementById("findings").textContent || "{}");
+  var RISK = {
+    safe: { label: "Safe", icon: "🟢" },
+    caution: { label: "Caution", icon: "🟡" },
+    risky: { label: "Risky", icon: "🔴" }
+  };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function fmt(mb) {
+    if (!mb && mb !== 0) return "—";
+    if (mb >= 1024) return (mb / 1024).toFixed(mb >= 10240 ? 0 : 1) + " GB";
+    if (mb >= 1) return Math.round(mb) + " MB";
+    return Math.max(1, Math.round(mb * 1024)) + " KB";
+  }
+  function riskOf(it) { return RISK[it.risk] ? it.risk : "caution"; }
+
+  // Theme
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem("mac-cleanup-theme"); if (saved) root.dataset.theme = saved; } catch (e) {}
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var next = root.dataset.theme === "light" ? "dark" : "light";
+    root.dataset.theme = next;
+    try { localStorage.setItem("mac-cleanup-theme", next); } catch (e) {}
+  });
+
+  // Totals
+  var groups = data.groups || [];
+  var totals = { safe: 0, caution: 0, risky: 0 };
+  var count = 0;
+  groups.forEach(function (g) {
+    (g.items || []).forEach(function (it) { totals[riskOf(it)] += it.size_mb || 0; count++; });
+  });
+  var all = totals.safe + totals.caution + totals.risky;
+
+  var when = data.generated ? new Date(data.generated) : new Date();
+  document.getElementById("sub").textContent =
+    (data.machine ? data.machine + " · " : "") +
+    when.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) +
+    " · " + count + " item" + (count === 1 ? "" : "s") + " in " + groups.length + " group" + (groups.length === 1 ? "" : "s");
+
+  // Stat cards
+  var stats = document.getElementById("stats");
+  [
+    ["Could free", fmt(all), ""],
+    ["Safe", fmt(totals.safe), "safe"],
+    ["Caution", fmt(totals.caution), "caution"],
+    ["Risky", fmt(totals.risky), "risky"]
+  ].forEach(function (s) {
+    var c = el("div", "stat " + s[2]);
+    c.appendChild(el("div", "label", s[0]));
+    var parts = s[1].split(" ");
+    var v = el("div", "value", parts[0]);
+    if (parts[1]) v.appendChild(el("small", null, parts[1]));
+    c.appendChild(v);
+    stats.appendChild(c);
+  });
+
+  // Disk bar
+  var d = data.disk || {};
+  var bar = document.getElementById("bar");
+  if (d.total_gb) {
+    var usedGb = d.total_gb - (d.free_gb || 0);
+    var pct = function (gb) { return Math.max(0, gb / d.total_gb * 100); };
+    var rs = totals.safe / 1024, rc = totals.caution / 1024, rr = totals.risky / 1024;
+    var usedRest = Math.max(0, usedGb - rs - rc - rr);
+    [["used", usedRest], ["r-safe", rs], ["r-caution", rc], ["r-risky", rr]].forEach(function (p) {
+      var s = el("span", p[0]); s.style.width = pct(p[1]) + "%"; bar.appendChild(s);
+    });
+    document.getElementById("diskLabel").textContent =
+      Math.round(d.free_gb) + " GB free of " + Math.round(d.total_gb) + " GB";
+    document.getElementById("diskAfter").textContent =
+      "Up to " + Math.round((d.free_gb || 0) + all / 1024) + " GB free after cleanup + emptying Trash";
+  } else {
+    document.querySelector(".disk").hidden = true;
+  }
+
+  // Groups
+  var host = document.getElementById("groups");
+  if (!groups.length) host.appendChild(el("div", "card empty", "Nothing worth removing was found. Your Mac is in good shape ✨"));
+
+  groups.forEach(function (g) {
+    var items = g.items || [];
+    var size = items.reduce(function (a, it) { return a + (it.size_mb || 0); }, 0);
+    var card = el("section", "card group");
+    var head = el("div", "group-head");
+    head.setAttribute("role", "button");
+    head.tabIndex = 0;
+    head.appendChild(el("div", "group-id", g.id || "•"));
+    var t = el("div");
+    t.appendChild(el("div", "group-title", g.title || "Untitled"));
+    if (g.summary) t.appendChild(el("div", "group-sum", g.summary));
+    head.appendChild(t);
+    var sz = el("div", "group-size", fmt(size));
+    sz.appendChild(el("small", null, items.length + " item" + (items.length === 1 ? "" : "s")));
+    head.appendChild(sz);
+    head.appendChild(el("span", "chev", "▾"));
+    function toggle() { card.classList.toggle("collapsed"); }
+    head.addEventListener("click", toggle);
+    head.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    card.appendChild(head);
+
+    var list = el("div", "items");
+    items.forEach(function (it) {
+      var r = riskOf(it);
+      var row = el("div", "item " + r);
+      row.dataset.risk = r;
+      row.appendChild(el("span", "badge " + r, RISK[r].icon + " " + RISK[r].label));
+      var nm = el("div");
+      nm.appendChild(el("div", "item-name", it.name || ""));
+      if (it.path) nm.appendChild(el("div", "item-path", it.path));
+      row.appendChild(nm);
+      row.appendChild(el("div", "item-size", fmt(it.size_mb)));
+      if (it.why) row.appendChild(el("div", "item-why", it.why));
+      if (it.effect || it.undo) {
+        var meta = el("div", "item-meta");
+        if (it.effect) { var e1 = el("div"); e1.appendChild(el("b", null, "If removed: ")); e1.appendChild(document.createTextNode(it.effect)); meta.appendChild(e1); }
+        if (it.undo) { var e2 = el("div"); e2.appendChild(el("b", null, "Undo: ")); e2.appendChild(document.createTextNode(it.undo)); meta.appendChild(e2); }
+        row.appendChild(meta);
+      }
+      if (r === "risky") {
+        row.appendChild(el("div", "warn", "⚠️ " + (it.warning || "This may hold your own data or something you rely on. Claude will ask about it separately, by name, before touching it.")));
+      } else if (it.warning) {
+        row.appendChild(el("div", "warn caution", "⚠️ " + it.warning));
+      }
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+    host.appendChild(card);
+  });
+
+  // Filters
+  var chips = document.querySelectorAll(".chip");
+  chips.forEach(function (c) {
+    c.addEventListener("click", function () {
+      var f = c.dataset.f;
+      chips.forEach(function (x) { x.setAttribute("aria-pressed", String(x === c)); });
+      document.querySelectorAll(".group").forEach(function (g) {
+        var any = false;
+        g.querySelectorAll(".item").forEach(function (row) {
+          var show = f === "all" || row.dataset.risk === f;
+          row.hidden = !show; if (show) any = true;
+        });
+        g.hidden = !any;
+      });
+    });
+  });
+
+  // Manual steps and kept items
+  if ((data.manual || []).length) {
+    document.getElementById("manualSec").hidden = false;
+    var ol = document.getElementById("manual");
+    data.manual.forEach(function (m) { ol.appendChild(el("li", null, m)); });
+  }
+  if ((data.keep || []).length) {
+    document.getElementById("keepSec").hidden = false;
+    var kg = document.getElementById("keep");
+    data.keep.forEach(function (k) {
+      var c = el("div"); c.appendChild(el("b", null, "✓ " + (k.name || ""))); if (k.why) c.appendChild(el("span", null, k.why)); kg.appendChild(c);
+    });
+  }
+})();
+</script>
+</body>
+</html>

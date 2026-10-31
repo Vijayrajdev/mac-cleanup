@@ -1,0 +1,14 @@
+{
+  "name": "mac-cleanup",
+  "owner": {
+    "name": "Vijay Raj C K",
+    "url": "https://vijayraj.vercel.app/"
+  },
+  "plugins": [
+    {
+      "name": "mac-cleanup",
+      "source": "./",
+      "description": "Safe, approval-first Mac cleanup with risk ratings and a themed report."
+    }
+  ]
+}
